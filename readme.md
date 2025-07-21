@@ -1,138 +1,182 @@
-## Análisis de Requerimientos - Sistema de Reservas
+# Sistema de Reservas de Recursos
 
-### **Problema Identificado**
-El sistema presenta un cuello de botella crítico donde:
-- Las **operaciones de reserva** requieren verificación de disponibilidad y bloqueo de recursos (operaciones costosas)
-- Las **consultas de disponibilidad** deben ser ultra-rápidas para una buena experiencia de usuario
+Este es un sistema digital que permite a los usuarios **reservar recursos** (como salas de reuniones, equipos, vehículos, etc.) de manera organizada y eficiente.
 
-### **Especificaciones Técnicas**
+## Características Principales
 
-**Stack Tecnológico:**
-- Backend: Node.js + Express + TypeScript
-- Base de datos: PostgreSQL + Sequelize ORM
-- Arquitectura: Clean Architecture
+### Cliente
 
-### **Requerimientos Funcionales**
+- ✅ Reservas rápidas y sin conflictos
+- ✅ Confirmación inmediata
+- ✅ Cancelación flexible
+- ✅ Seguimiento en tiempo real
 
-#### **RF-01: Consulta de Disponibilidad Ultra-Rápida**
-- **Descripción:** El sistema debe permitir consultas de disponibilidad con tiempo de respuesta < 100ms
-- **Entrada:** Fecha, hora, tipo de recurso, cantidad
-- **Salida:** Disponibilidad (boolean) + recursos disponibles
-- **Prioridad:** CRÍTICA
+### Administrador
 
-#### **RF-02: Operación de Reserva Consistente**
-- **Descripción:** El sistema debe procesar reservas garantizando consistencia y evitando doble booking
-- **Entrada:** Datos del cliente, recurso, fecha/hora, duración
-- **Salida:** Confirmación de reserva + ID único
-- **Prioridad:** CRÍTICA
+- ✅ Mejor aprovechamiento de recursos
+- ✅ Reducción de conflictos
+- ✅ Historial completo de uso
+- ✅ Automatización de procesos
 
-#### **RF-03: Bloqueo de Recursos**
-- **Descripción:** Durante el proceso de reserva, los recursos deben bloquearse temporalmente
-- **Duración del bloqueo:** 5 minutos (configurable)
-- **Prioridad:** ALTA
+## Funcionalidades Principales
 
-### **Requerimientos No Funcionales**
+### 1. **Consultar Disponibilidad**
 
-#### **RNF-01: Performance**
-- Consultas de disponibilidad: < 100ms
-- Operaciones de reserva: < 2 segundos
-- Soporte para 1000 consultas concurrentes
+Te permite ver qué horarios están libres para usar un recurso específico.
 
-#### **RNF-02: Consistencia**
-- Transacciones ACID para operaciones de reserva
-- Prevención de condiciones de carrera (race conditions)
+- Seleccionas el recurso que necesitas (ej: "Sala de Juntas A")
+- Eliges la fecha que te interesa
+- El sistema te muestra los horarios disponibles y ocupados
 
-#### **RNF-03: Escalabilidad**
-- Separación de lecturas (consultas) y escrituras (reservas)
-- Preparado para réplicas de lectura
+```
+Recurso: Sala de Reuniones 1
+Fecha: 15 de Enero 2024
 
-### **Estructura de Datos Requerida**
-
-```typescript
-// Entidades principales (NO MODIFICAR)
-interface Resource {
-  id: string;
-  name: string;
-  type: string;
-  capacity: number;
-  status: 'active' | 'inactive';
-}
-
-interface Reservation {
-  id: string;
-  resourceId: string;
-  clientId: string;
-  startTime: Date;
-  endTime: Date;
-  status: 'pending' | 'confirmed' | 'cancelled';
-  createdAt: Date;
-}
-
-interface ResourceLock {
-  id: string;
-  resourceId: string;
-  sessionId: string;
-  expiresAt: Date;
-  createdAt: Date;
-}
+✅ Disponible: 9:00-10:00, 11:00-12:00, 14:00-15:00
+❌ Ocupado: 10:00-11:00, 13:00-14:00
 ```
 
-### **Casos de Uso Principales**
+### 2. **Hacer Reservas**
 
-#### **CU-01: Consultar Disponibilidad**
-**Actor:** Cliente/Frontend
-**Flujo:**
-1. Cliente solicita disponibilidad para fecha/hora específica
-2. Sistema consulta recursos disponibles (sin bloqueos)
-3. Sistema retorna disponibilidad en tiempo real
+Te permite apartar un recurso para un horario específico.
 
-#### **CU-02: Realizar Reserva**
-**Actor:** Cliente/Frontend
-**Flujo:**
-1. Cliente inicia proceso de reserva
-2. Sistema bloquea recurso temporalmente
-3. Sistema valida disponibilidad
-4. Sistema crea reserva si recurso disponible
-5. Sistema libera bloqueo y confirma reserva
+- Eliges el recurso que necesitas
+- Seleccionas la fecha y horario
+- El sistema verifica que esté disponible
+- Si está libre, confirma tu reserva
+- Si está ocupado, te avisa del conflicto
 
-#### **CU-03: Liberar Bloqueos Expirados**
-**Actor:** Sistema (background job)
-**Flujo:**
-1. Sistema identifica bloqueos expirados
-2. Sistema libera recursos bloqueados
-3. Sistema actualiza estado de disponibilidad
+**Información que necesitas proporcionar:**
 
-### **Endpoints Requeridos**
+- ¿Qué recurso necesitas?
+- ¿Cuándo lo necesitas? (fecha y hora de inicio)
+- ¿Hasta cuándo lo vas a usar? (fecha y hora de fin)
+- Tu identificación de usuario
 
-```typescript
-// Consultas (ultra-rápidas)
-GET /api/availability?date=YYYY-MM-DD&time=HH:MM&type=string&quantity=number
+### 3. **Cancelar Reservas**
 
-// Reservas (consistentes)
-POST /api/reservations
-PUT /api/reservations/:id/confirm
-DELETE /api/reservations/:id
+Te permite liberar una reserva que ya no necesitas.
 
-// Gestión de bloqueos
-POST /api/locks/release-expired
-```
+- Buscas tu reserva existente
+- Solicitas la cancelación
+- El sistema verifica que sea tu reserva
+- Libera el horario para otros usuarios
 
-### **Consideraciones Técnicas**
+### 4. **Consultar Reservas**
 
-1. **Separación de Responsabilidades:** Consultas vs Operaciones de escritura
-2. **Optimización de Consultas:** Índices en campos de fecha/hora/tipo
-3. **Manejo de Concurrencia:** Locks optimistas/pesimistas según el caso
-4. **Background Jobs:** Limpieza automática de bloqueos expirados
+Te permite ver los detalles de una reserva específica.
 
-### **Entregables Esperados**
+- Proporcionas el número de reserva
+- El sistema te muestra toda la información: fechas, horarios, estado, etc.
 
-1. Implementación completa del backend siguiendo Clean Architecture
-2. Endpoints funcionales con validaciones
-3. Manejo de errores y excepciones
-4. Tests unitarios básicos
-5. Documentación de API (README)
+## Estados de las Reservas
 
----
+Tu reserva puede estar en diferentes estados:
 
-**Nota para el Desarrollador:** 
-Implementar exactamente lo especificado sin modificar estructuras de datos ni agregar campos adicionales. Enfocarse en la optimización del rendimiento manteniendo la consistencia de datos.
+| Estado         | Descripcion                          | ¿Qué hacer?                                    |
+| -------------- | ------------------------------------ | ---------------------------------------------- |
+| **CONFIRMADA** | Tu reserva está activa y garantizada | Puedes usar el recurso en el horario reservado |
+| **PENDIENTE**  | Esperando confirmación del sistema   | Esperar confirmación automática                |
+| **CANCELADA**  | La reserva fue cancelada             | El recurso ya no está apartado para ti         |
+| **EXPIRADA**   | La reserva venció sin ser usada      | Necesitas hacer una nueva reserva              |
+
+## Seguimiento de Operaciones
+
+Cada vez que haces una reserva, el sistema genera un **código único** (como un número de confirmación) que te permite:
+
+- Rastrear el estado de tu solicitud
+- Ver si hubo algún problema
+- Revisar el historial de cambios
+
+### Estados de las Operaciones
+
+- **EN PROGRESO**: Tu solicitud se está procesando
+- **COMPLETADA**: Todo salió bien
+- **FALLIDA**: Hubo un problema (ej: conflicto de horario)
+- **EXPIRADA**: La operación tardó demasiado tiempo
+
+## Otras funcionalidades
+
+### 1. **Calendario Integrado**
+
+- Verás todas las reservas en formato de calendario
+- Podrás filtrar por tipo de recurso
+- Vista mensual, semanal o diaria
+
+### 2. **Reportes de Uso** _(Próximamente)_
+
+- Estadísticas de qué recursos se usan más
+- Horarios más demandados
+- Métricas de ocupación
+
+### 3. **Reintento Automático**
+
+- Si una operación falla, el sistema puede intentar nuevamente
+- Útil para problemas temporales de conectividad
+
+## Reglas y Validaciones
+
+- No puedes reservar en el pasado
+- No se permiten conflictos
+- Límite de tiempo
+- Solo puedes cancelar tus propias reservas
+
+## Horarios de Disponibilidad
+
+- **Lunes a Viernes**: 9:00 AM - 6:00 PM
+- **Reservas por horas**: Cada slot dura 1 hora
+- **Horarios disponibles**: 9:00-10:00, 10:00-11:00, ..., 17:00-18:00
+
+_Nota: Estos horarios pueden variar según la configuración._
+
+## Resolución de Problemas Comunes
+
+### **Problema**: "No puedo hacer la reserva"
+
+| **Posibles causas:**                      | **Solución:**                                     |
+| ----------------------------------------- | ------------------------------------------------- |
+| El horario ya está ocupado                | Verifica la disponibilidad primero                |
+| Estás intentando reservar en el pasado    | Elige un horario diferente                        |
+| El recurso no existe o no está disponible | Contacta al administrador si el problema persiste |
+
+### **Problema**: "Mi reserva dice 'FALLIDA'"
+
+| **Posibles causas:**              | **Solución:**                                     |
+| --------------------------------- | ------------------------------------------------- |
+| Conflicto con otra reserva        | Revisa el código de seguimiento para más detalles |
+| Problema temporal del sistema     | Intenta hacer la reserva nuevamente               |
+| Datos incorrectos en la solicitud | Elige un horario diferente                        |
+
+### **Problema**: "No encuentro mi reserva"
+
+| **Posibles causas:**         | **Solución:**                      |
+| ---------------------------- | ---------------------------------- |
+| Código de reserva incorrecto | Verifica el código de confirmación |
+| La reserva fue cancelada     | Revisa tu historial de reservas    |
+| Error en el sistema          | Contacta soporte técnico           |
+
+## 📞 Soporte y Ayuda
+
+### ¿Cuándo contactar soporte?
+
+- Problemas técnicos persistentes
+- Errores en reservas confirmadas
+- Necesitas ayuda con funcionalidades específicas
+- Reportar problemas del sistema
+
+### Información útil para proporcionar:
+
+- Código de seguimiento de tu operación
+- Horario y fecha de la reserva
+- Descripción detallada del problema
+- Capturas de pantalla si es posible
+
+## Operaciones
+
+| **Quiero...**       | **Qué hacer**            | **Información necesaria**      |
+| ------------------- | ------------------------ | ------------------------------ |
+| Ver disponibilidad  | Consultar disponibilidad | Recurso + Fecha                |
+| Hacer reserva       | Crear reserva            | Recurso + Fecha/Hora + Usuario |
+| Cancelar reserva    | Cancelar reserva         | Código de reserva + Usuario    |
+| Ver mi reserva      | Consultar reserva        | Código de reserva              |
+| Verificar operación | Consultar transacción    | Código de seguimiento          |
