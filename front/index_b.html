@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reservas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 0.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #f1f5f9;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.875rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #666;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-control::placeholder {
+            color: #ffffff;
+        }
+
+        .btn {
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .time-slot {
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .time-slot.available {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: rgba(34, 197, 94, 0.4);
+            color: #4ade80;
+        }
+
+        .time-slot.available:hover {
+            background: rgba(34, 197, 94, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .time-slot.unavailable {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #f87171;
+            cursor: not-allowed;
+        }
+
+        .time-slot.selected {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .reservation-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .reservation-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status.confirmed {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+
+        .status.pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        .status.cancelled {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        .notification {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification.success {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #4ade80;
+        }
+
+        .notification.error {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .tabs {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .time-slots {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Sistema de Reservas</h1>
+            <p>Gestiona tus reservas de manera simple y eficiente</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('availability')">📅 Disponibilidad</button>
+            <button class="tab" onclick="switchTab('reservation')">➕ Nueva Reserva</button>
+            <button class="tab" onclick="switchTab('my-reservations')">📋 Mis Reservas</button>
+        </div>
+
+        <!-- Tab: Disponibilidad -->
+        <div id="availability-tab" class="tab-content">
+            <div class="card">
+                <h2>Consultar Disponibilidad</h2>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Recurso</label>
+                        <select class="form-control availability-resource" id="availability-resource">
+                            <option value="">Seleccionar recurso...</option>
+                            <option value="sala-1">Sala de Juntas A</option>
+                            <option value="sala-2">Sala de Juntas B</option>
+                            <option value="equipo-1">Proyector Principal</option>
+                            <option value="vehiculo-1">Vehículo Corporativo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha</label>
+                        <input type="date" class="form-control" id="availability-date">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="checkAvailability()">
+                    🔍 Consultar Disponibilidad
+                </button>
+
+                <div id="availability-result" class="hidden">
+                    <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Horarios Disponibles</h3>
+                    <div class="time-slots" id="time-slots"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Nueva Reserva -->
+        <div id="reservation-tab" class="tab-content hidden">
+            <div class="card">
+                <h2>Nueva Reserva</h2>
+                <form id="reservation-form">
+                    <div class="grid">
+                        <div class="form-group">
+                            <label>Recurso</label>
+                            <select class="form-control" id="reservation-resource" required>
+                                <option value="">Seleccionar recurso...</option>
+                                <option value="sala-1">Sala de Juntas A</option>
+                                <option value="sala-2">Sala de Juntas B</option>
+                                <option value="equipo-1">Proyector Principal</option>
+                                <option value="vehiculo-1">Vehículo Corporativo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Usuario</label>
+                            <input type="text" class="form-control" id="reservation-user"
+                                placeholder="Tu nombre de usuario" required>
+                        </div>
+                    </div>
+                    <div class="grid">
+                        <div class="form-group">
+                            <label>Fecha de Inicio</label>
+                            <input type="datetime-local" class="form-control" id="reservation-start" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha de Fin</label>
+                            <input type="datetime-local" class="form-control" id="reservation-end" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        ➕ Crear Reserva
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tab: Mis Reservas -->
+        <div id="my-reservations-tab" class="tab-content hidden">
+            <div class="card">
+                <h2>Mis Reservas</h2>
+                <div class="form-group">
+                    <label>Buscar por código de reserva</label>
+                    <div style="display: flex; gap: 1rem;">
+                        <input type="text" class="form-control" id="search-reservation"
+                            placeholder="Código de reserva o usuario">
+                        <button class="btn btn-secondary" onclick="searchReservations()">
+                            🔍 Buscar
+                        </button>
+                    </div>
+                </div>
+
+                <div id="reservations-list">
+                    <div class="reservation-item">
+                        <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 1rem;">
+                            <h3>Sala de Juntas A</h3>
+                            <span class="status confirmed">✅ Confirmada</span>
+                        </div>
+                        <p><strong>Fecha:</strong> 20 de Enero, 2024</p>
+                        <p><strong>Horario:</strong> 10:00 - 12:00</p>
+                        <p><strong>Usuario:</strong> juan.perez</p>
+                        <p><strong>Código:</strong> RSV-2024-001</p>
+                        <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+                            <button class="btn btn-danger" onclick="cancelReservation('RSV-2024-001')">
+                                ❌ Cancelar
+                            </button>
+                            <button class="btn btn-secondary" onclick="viewReservation('RSV-2024-001')">
+                                👁️ Ver Detalles
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="reservation-item">
+                        <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 1rem;">
+                            <h3>Proyector Principal</h3>
+                            <span class="status pending">⏳ Pendiente</span>
+                        </div>
+                        <p><strong>Fecha:</strong> 22 de Enero, 2024</p>
+                        <p><strong>Horario:</strong> 14:00 - 16:00</p>
+                        <p><strong>Usuario:</strong> maria.garcia</p>
+                        <p><strong>Código:</strong> RSV-2024-002</p>
+                        <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+                            <button class="btn btn-danger" onclick="cancelReservation('RSV-2024-002')">
+                                ❌ Cancelar
+                            </button>
+                            <button class="btn btn-secondary" onclick="viewReservation('RSV-2024-002')">
+                                👁️ Ver Detalles
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estado global
+        let currentTab = 'availability'
+        let selectedTimeSlot = null
+
+        // Datos mock
+        const mockAvailability = {
+            'sala-1': {
+                available: ['09:00-10:00', '11:00-12:00', '14:00-15:00', '16:00-17:00'],
+                unavailable: ['10:00-11:00', '12:00-13:00', '13:00-14:00', '15:00-16:00']
+            },
+            'sala-2': {
+                available: ['09:00-10:00', '10:00-11:00', '13:00-14:00', '15:00-16:00', '17:00-18:00'],
+                unavailable: ['11:00-12:00', '12:00-13:00', '14:00-15:00', '16:00-17:00']
+            },
+            'equipo-1': {
+                available: ['09:00-10:00', '11:00-12:00', '12:00-13:00', '15:00-16:00', '16:00-17:00'],
+                unavailable: ['10:00-11:00', '13:00-14:00', '14:00-15:00', '17:00-18:00']
+            },
+            'vehiculo-1': {
+                available: ['09:00-10:00', '10:00-11:00', '11:00-12:00', '14:00-15:00', '15:00-16:00'],
+                unavailable: ['12:00-13:00', '13:00-14:00', '16:00-17:00', '17:00-18:00']
+            }
+        }
+
+        // Funciones de navegación
+        function switchTab(tabName) {
+            // Ocultar todos los tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden')
+            })
+
+            // Remover clase active de todos los botones
+            document.querySelectorAll('.tab').forEach(btn => {
+                btn.classList.remove('active')
+            })
+
+            // Mostrar tab seleccionado
+            document.getElementById(tabName + '-tab').classList.remove('hidden')
+
+            // Agregar clase active al botón
+            event.target.classList.add('active')
+
+            currentTab = tabName
+        }
+
+        // Función para consultar disponibilidad
+        function checkAvailability() {
+            const resource = document.getElementById('availability-resource').value
+            const date = document.getElementById('availability-date').value
+
+            if (!resource || !date) {
+                showNotification('Por favor selecciona un recurso y una fecha', 'error')
+                return
+            }
+
+            // Simular loading
+            showLoading()
+
+            setTimeout(() => {
+                hideLoading()
+                const availability = mockAvailability[resource]
+                displayAvailability(availability)
+                document.getElementById('availability-result').classList.remove('hidden')
+            }, 1000)
+        }
+
+        // Función para mostrar disponibilidad
+        function displayAvailability(availability) {
+            const container = document.getElementById('time-slots')
+            container.innerHTML = ''
+
+            const allSlots = [
+                '09:00-10:00', '10:00-11:00', '11:00-12:00', '12:00-13:00',
+                '13:00-14:00', '14:00-15:00', '15:00-16:00', '16:00-17:00', '17:00-18:00'
+            ]
+
+            allSlots.forEach(slot => {
+                const slotEl = document.createElement('div')
+                slotEl.className = 'time-slot'
+                slotEl.textContent = slot
+
+                if (availability.available.includes(slot)) {
+                    slotEl.classList.add('available')
+                    slotEl.onclick = () => selectTimeSlot(slotEl, slot)
+                } else {
+                    slotEl.classList.add('unavailable')
+                }
+
+                container.appendChild(slotEl)
+            })
+        }
+
+        // Función para seleccionar slot de tiempo
+        function selectTimeSlot(element, slot) {
+            // Remover selección anterior
+            document.querySelectorAll('.time-slot.selected').forEach(el => {
+                el.classList.remove('selected')
+            })
+
+            // Seleccionar nuevo slot
+            element.classList.add('selected')
+            selectedTimeSlot = slot
+
+            // Cambiar a tab de reserva y pre-llenar datos
+            switchTab('reservation')
+            document.querySelector('.tab[onclick="switchTab(\'reservation\')"]').click()
+
+            // Pre-llenar el formulario
+            const resourceSelect = document.getElementById('reservation-resource')
+            const availabilityResource = document.getElementById('availability-resource').value
+            const availabilityDate = document.getElementById('availability-date').value
+
+            resourceSelect.value = availabilityResource
+
+            // Calcular datetime-local para el slot seleccionado
+            const [startTime, endTime] = slot.split('-')
+            const startDateTime = availabilityDate + 'T' + startTime
+            const endDateTime = availabilityDate + 'T' + endTime
+
+            document.getElementById('reservation-start').value = startDateTime
+            document.getElementById('reservation-end').value = endDateTime
+        }
+
+        // Función para crear reserva
+        document.getElementById('reservation-form').addEventListener('submit', function (e) {
+            e.preventDefault()
+
+            const formData = {
+                resource: document.getElementById('reservation-resource').value,
+                user: document.getElementById('reservation-user').value,
+                start: document.getElementById('reservation-start').value,
+                end: document.getElementById('reservation-end').value
+            }
+
+            if (!formData.resource || !formData.user || !formData.start || !formData.end) {
+                showNotification('Por favor completa todos los campos', 'error')
+                return
+            }
+
+            // Validar fechas
+            const startDate = new Date(formData.start)
+            const endDate = new Date(formData.end)
+
+            if (startDate >= endDate) {
+                showNotification('La fecha de inicio debe ser anterior a la fecha de fin', 'error')
+                return
+            }
+
+            if (startDate < new Date()) {
+                showNotification('No puedes reservar en el pasado', 'error')
+                return
+            }
+
+            // Simular creación de reserva
+            showLoading()
+
+            setTimeout(() => {
+                hideLoading()
+                const reservationId = 'RSV-' + Date.now()
+                showNotification(`Reserva creada exitosamente. Código: ${reservationId}`, 'success')
+
+                // Limpiar formulario
+                document.getElementById('reservation-form').reset()
+
+                // Cambiar a tab de reservas
+                setTimeout(() => {
+                    switchTab('my-reservations')
+                    document.querySelector('.tab[onclick="switchTab(\'my-reservations\')"]').click()
+                }, 2000)
+            }, 1500)
+        })
+
+        // Función para buscar reservas
+        function searchReservations() {
+            const searchTerm = document.getElementById('search-reservation').value
+
+            if (!searchTerm) {
+                showNotification('Ingresa un código de reserva o usuario', 'error')
+                return
+            }
+
+            showLoading()
+
+            setTimeout(() => {
+                hideLoading()
+                showNotification('Búsqueda completada', 'success')
+            }, 1000)
+        }
+
+        // Función para cancelar reserva
+        function cancelReservation(reservationId) {
+            if (confirm('¿Estás seguro de que quieres cancelar esta reserva?')) {
+                showLoading()
+
+                setTimeout(() => {
+                    hideLoading()
+                    showNotification(`Reserva ${reservationId} cancelada exitosamente`, 'success')
+
+                    // Simular actualización de la lista
+                    const reservationItem = event.target.closest('.reservation-item')
+                    const statusEl = reservationItem.querySelector('.status')
+                    statusEl.className = 'status cancelled'
+                    statusEl.innerHTML = '❌ Cancelada'
+                }, 1000)
+            }
+        }
+
+        // Función para ver detalles de reserva
+        function viewReservation(reservationId) {
+            showNotification(`Mostrando detalles de ${reservationId}`, 'success')
+        }
+
+        // Funciones de utilidad
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div')
+            notification.className = `notification ${type}`
+            notification.textContent = message
+
+            document.body.appendChild(notification)
+
+            setTimeout(() => {
+                notification.remove()
+            }, 4000)
+        }
+
+        function showLoading() {
+            const loading = document.createElement('div')
+            loading.className = 'loading'
+            loading.id = 'loading-spinner'
+            loading.innerHTML = '<div class="spinner"></div>'
+
+            document.body.appendChild(loading)
+        }
+
+        function hideLoading() {
+            const loading = document.getElementById('loading-spinner')
+            if (loading) {
+                loading.remove()
+            }
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function () {
+            // Establecer fecha mínima como hoy
+            const today = new Date().toISOString().split('T')[0]
+            document.getElementById('availability-date').setAttribute('min', today)
+
+            const now = new Date()
+            const currentDateTime = now.toISOString().slice(0, 16)
+            document.getElementById('reservation-start').setAttribute('min', currentDateTime)
+            document.getElementById('reservation-end').setAttribute('min', currentDateTime)
+        });
+    </script>
+</body>
+
+</html>

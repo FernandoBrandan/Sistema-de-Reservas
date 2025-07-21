@@ -1,0 +1,46 @@
+services:
+  reserve-system:
+    build: ./reserve-system
+    environment:
+      - MONGO_URI=${MONGO_URI_USERS}
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - reserve-system-network
+    depends_on:
+      - postgres
+    deploy:
+      replicas: 2
+    # profiles:
+    #   - disabled
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: reservations
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - reserve-system-network
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - reserve-system-network
+    depends_on:
+      - reserve-system
+volumes:
+  pgdata:
+
+networks:
+  reserve-system-network:
+    driver: bridge
